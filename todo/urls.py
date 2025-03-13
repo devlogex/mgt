@@ -9,4 +9,8 @@ urlpatterns = [
     path('update/<int:pk>/', views.TodoUpdateView.as_view(), name='update'),
     path('delete/<int:pk>/', views.TodoDeleteView.as_view(), name='delete'),
     path('change-status/<int:pk>/<str:status>/', views.change_status, name='change_status'),
+    
+    # Authentication URLs
+    path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('logout/', views.logout_view, name='logout'),
 ] 
