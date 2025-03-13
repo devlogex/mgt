@@ -1,0 +1,221 @@
+{% extends 'todo/base.html' %} {% block title %}My Tasks | TodoApp{% endblock %}
+{% block content %}
+<div class="container">
+  <!-- Header with stats -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">
+          <i class="fas fa-tasks text-primary me-2"></i>
+          My Tasks {% if current_status %}
+          <a
+            href="{% url 'todo:list' %}"
+            class="btn btn-outline-secondary btn-sm ms-3"
+          >
+            <i class="fas fa-times me-1"></i> Clear Filter
+          </a>
+          {% endif %}
+        </h1>
+        <a href="{% url 'todo:create' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-1"></i> New Task
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <a
+        href="{% url 'todo:list' %}?status=pending"
+        class="text-decoration-none"
+      >
+        <div
+          class="card bg-light border-0 shadow-sm h-100 {% if current_status == 'pending' %}border border-warning border-2{% endif %}"
+          style="cursor: pointer"
+        >
+          <div class="card-body d-flex align-items-center">
+            <div class="rounded-circle bg-warning bg-opacity-25 p-3 me-3">
+              <i class="fas fa-hourglass-half text-warning fa-2x"></i>
+            </div>
+            <div>
+              <h3 class="mb-0">{{ pending_count }}</h3>
+              <p class="text-muted mb-0">Pending</p>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 mb-3">
+      <a
+        href="{% url 'todo:list' %}?status=in_progress"
+        class="text-decoration-none"
+      >
+        <div
+          class="card bg-light border-0 shadow-sm h-100 {% if current_status == 'in_progress' %}border border-primary border-2{% endif %}"
+          style="cursor: pointer"
+        >
+          <div class="card-body d-flex align-items-center">
+            <div class="rounded-circle bg-primary bg-opacity-25 p-3 me-3">
+              <i class="fas fa-spinner text-primary fa-2x"></i>
+            </div>
+            <div>
+              <h3 class="mb-0">{{ in_progress_count }}</h3>
+              <p class="text-muted mb-0">In Progress</p>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4 mb-3">
+      <a
+        href="{% url 'todo:list' %}?status=completed"
+        class="text-decoration-none"
+      >
+        <div
+          class="card bg-light border-0 shadow-sm h-100 {% if current_status == 'completed' %}border border-success border-2{% endif %}"
+          style="cursor: pointer"
+        >
+          <div class="card-body d-flex align-items-center">
+            <div class="rounded-circle bg-success bg-opacity-25 p-3 me-3">
+              <i class="fas fa-check-circle text-success fa-2x"></i>
+            </div>
+            <div>
+              <h3 class="mb-0">{{ completed_count }}</h3>
+              <p class="text-muted mb-0">Completed</p>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Tasks List -->
+  {% if todos %}
+  <div class="row">
+    <div class="col-12">
+      {% for todo in todos %}
+      <div
+        class="card mb-3 shadow-sm border-0 todo-item {{ todo.priority }}-priority {% if todo.status == 'completed' %}completed{% endif %}"
+      >
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5
+              class="card-title mb-0 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}"
+            >
+              {{ todo.title }}
+            </h5>
+            <div>
+              {% if todo.status == 'pending' %}
+              <span class="badge bg-warning text-dark">Pending</span>
+              {% elif todo.status == 'in_progress' %}
+              <span class="badge bg-primary">In Progress</span>
+              {% else %}
+              <span class="badge bg-success">Completed</span>
+              {% endif %} {% if todo.priority == 'high' %}
+              <span class="badge bg-danger ms-1">High Priority</span>
+              {% elif todo.priority == 'medium' %}
+              <span class="badge bg-warning text-dark ms-1"
+                >Medium Priority</span
+              >
+              {% elif todo.priority == 'low' %}
+              <span class="badge bg-info text-dark ms-1">Low Priority</span>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if todo.description %}
+          <p class="card-text mb-3">{{ todo.description }}</p>
+          {% endif %}
+
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              {% if todo.category %}
+              <span class="badge bg-light text-dark border me-2">
+                <i class="fas fa-tag me-1"></i> {{ todo.category }}
+              </span>
+              {% endif %}
+
+              <span class="text-muted small">
+                <i class="far fa-clock me-1"></i> Updated:
+                {{todo.updated_date|date:"M d, Y" }}
+              </span>
+            </div>
+
+            <div class="btn-group">
+              <!-- Status Change Buttons -->
+              {% if todo.status != 'pending' %}
+              <a
+                href="{% url 'todo:change_status' todo.id 'pending' %}"
+                class="btn btn-sm btn-outline-warning me-1"
+                title="Mark as Pending"
+              >
+                <i class="fas fa-hourglass"></i>
+              </a>
+              {% endif %} {% if todo.status != 'in_progress' %}
+              <a
+                href="{% url 'todo:change_status' todo.id 'in_progress' %}"
+                class="btn btn-sm btn-outline-primary me-1"
+                title="Mark as In Progress"
+              >
+                <i class="fas fa-spinner"></i>
+              </a>
+              {% endif %} {% if todo.status != 'completed' %}
+              <a
+                href="{% url 'todo:change_status' todo.id 'completed' %}"
+                class="btn btn-sm btn-outline-success me-1"
+                title="Mark as Completed"
+              >
+                <i class="fas fa-check"></i>
+              </a>
+              {% endif %}
+
+              <!-- Edit & Delete Buttons -->
+              <a
+                href="{% url 'todo:update' todo.id %}"
+                class="btn btn-sm btn-outline-secondary me-1"
+                title="Edit Task"
+              >
+                <i class="fas fa-edit"></i>
+              </a>
+
+              <a
+                href="{% url 'todo:delete' todo.id %}"
+                class="btn btn-sm btn-outline-danger"
+                title="Delete Task"
+              >
+                <i class="fas fa-trash"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-clipboard-list text-muted fa-4x mb-3"></i>
+          {% if current_status %}
+          <h3>No {{ current_status|cut:"_"|title }} Tasks</h3>
+          <p class="text-muted">There are no tasks with this status</p>
+          <a href="{% url 'todo:list' %}" class="btn btn-outline-primary mt-2">
+            <i class="fas fa-list me-1"></i> Show All Tasks
+          </a>
+          {% else %}
+          <h3>No tasks yet</h3>
+          <p class="text-muted">Start by adding your first task</p>
+          <a href="{% url 'todo:create' %}" class="btn btn-primary mt-2">
+            <i class="fas fa-plus me-1"></i> Add Task
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "todo/base.html" %} {% load crispy_forms_tags %} {% block title %}
+{%if form.instance.id %}Edit Task{% else %}New Task{% endif %} | TodoApp
+{%endblock %} {% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white py-3">
+          <h4 class="mb-0">
+            {% if form.instance.id %}
+            <i class="fas fa-edit me-2"></i> Edit Task {% else %}
+            <i class="fas fa-plus-circle me-2"></i> New Task {% endif %}
+          </h4>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="row mb-3">
+              <div class="col-12">{{ form.title|as_crispy_field }}</div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-12">{{ form.description|as_crispy_field }}</div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-12">{{ form.category|as_crispy_field }}</div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">{{ form.priority|as_crispy_field }}</div>
+              <div class="col-md-6">{{ form.status|as_crispy_field }}</div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'todo:list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to List
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Save Task
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
