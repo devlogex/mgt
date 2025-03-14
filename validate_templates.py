@@ -4,7 +4,7 @@ from django.conf import settings
 from django.template import Template, TemplateSyntaxError
 
 # Configure Django settings
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mgt_todo.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "root.settings")
 django.setup()
 
 def validate_template(template_path):
