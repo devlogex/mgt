@@ -9,6 +9,8 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.models import Group
 from django.contrib.auth import logout
 from django.http import JsonResponse
+from django.utils import timezone
+from datetime import timedelta, datetime
 from .models import Todo
 from .forms import TodoForm
 
@@ -53,6 +55,22 @@ class TodoListView(LoginRequiredMixin, ListView):
         if status_filter in ['pending', 'in_progress', 'completed']:
             queryset = queryset.filter(status=status_filter)
         
+        # Filter by date range if provided in the URL
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        if start_date and end_date:
+            try:
+                # Parse the date strings into datetime objects
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                # Add one day to end_date to include the end date in the results
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+                queryset = queryset.filter(updated_date__date__gte=start_date, 
+                                          updated_date__date__lt=end_date)
+            except ValueError:
+                # If date parsing fails, ignore the filter
+                pass
+        
         # Use the model's default ordering (status, priority, position)
         return queryset
     
@@ -65,6 +83,10 @@ class TodoListView(LoginRequiredMixin, ListView):
         
         # Add the current status filter to the context
         context['current_status'] = self.request.GET.get('status', '')
+        
+        # Add the custom date range to the context
+        context['start_date'] = self.request.GET.get('start_date', '')
+        context['end_date'] = self.request.GET.get('end_date', '')
         
         return context
 

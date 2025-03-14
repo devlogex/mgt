@@ -31,6 +31,25 @@
   .draggable .btn {
     cursor: pointer;
   }
+
+  /* Date range picker styles */
+  .date-range-form {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    top: 40px;
+    right: 0;
+  }
+
+  .date-range-form.show {
+    display: block;
+  }
 </style>
 {% endblock %} {% block content %}
 <div class="container">
@@ -40,18 +59,124 @@
       <div class="d-flex justify-content-between align-items-center">
         <h1 class="mb-0">
           <i class="fas fa-tasks text-primary me-2"></i>
-          My Tasks {% if current_status %}
+          My Tasks {% if current_status or start_date %}
           <a
             href="{% url 'todo:list' %}"
             class="btn btn-outline-secondary btn-sm ms-3"
           >
-            <i class="fas fa-times me-1"></i> Clear Filter
+            <i class="fas fa-times me-1"></i> Clear Filters
           </a>
           {% endif %}
         </h1>
-        <a href="{% url 'todo:create' %}" class="btn btn-primary">
-          <i class="fas fa-plus me-1"></i> New Task
-        </a>
+        <div class="d-flex">
+          <!-- Date Filter Dropdown -->
+          <div class="dropdown me-2 position-relative">
+            <button
+              class="btn btn-outline-secondary dropdown-toggle"
+              type="button"
+              id="dateFilterDropdown"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              {% if start_date and end_date %} {{ start_date }} to {{ end_date
+              }} {% else %} Date Filter {% endif %}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dateFilterDropdown">
+              <li>
+                <a
+                  class="dropdown-item date-preset"
+                  href="#"
+                  data-preset="today"
+                  >Today</a
+                >
+              </li>
+              <li>
+                <a
+                  class="dropdown-item date-preset"
+                  href="#"
+                  data-preset="7days"
+                  >Last 7 Days</a
+                >
+              </li>
+              <li>
+                <a
+                  class="dropdown-item date-preset"
+                  href="#"
+                  data-preset="30days"
+                  >Last 30 Days</a
+                >
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="{% url 'todo:list' %}{% if current_status %}?status={{ current_status }}{% endif %}"
+                  >All Time</a
+                >
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a class="dropdown-item" href="#" id="customDateRange"
+                  >Custom Range</a
+                >
+              </li>
+            </ul>
+
+            <!-- Custom Date Range Form -->
+            <div class="date-range-form" id="dateRangeForm">
+              <form
+                action="{% url 'todo:list' %}"
+                method="get"
+                id="dateRangeFormElement"
+              >
+                {% if current_status %}
+                <input
+                  type="hidden"
+                  name="status"
+                  value="{{ current_status }}"
+                />
+                {% endif %}
+                <div class="mb-3">
+                  <label for="start_date" class="form-label">Start Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="start_date"
+                    name="start_date"
+                    value="{{ start_date }}"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="end_date" class="form-label">End Date</label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="end_date"
+                    name="end_date"
+                    value="{{ end_date }}"
+                    required
+                  />
+                </div>
+                <div class="d-flex justify-content-between">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    id="cancelDateRange"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    Apply
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <a href="{% url 'todo:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> New Task
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -60,7 +185,7 @@
   <div class="row mb-4">
     <div class="col-md-4 mb-3">
       <a
-        href="{% url 'todo:list' %}?status=pending"
+        href="{% if current_status == 'pending' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=pending{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -81,7 +206,7 @@
     </div>
     <div class="col-md-4 mb-3">
       <a
-        href="{% url 'todo:list' %}?status=in_progress"
+        href="{% if current_status == 'in_progress' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=in_progress{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -102,7 +227,7 @@
     </div>
     <div class="col-md-4 mb-3">
       <a
-        href="{% url 'todo:list' %}?status=completed"
+        href="{% if current_status == 'completed' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=completed{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -164,21 +289,15 @@
             {% endif %}
 
             <div class="d-flex justify-content-between align-items-center">
-              <div>
-                {% if todo.category %}
-                <span class="badge bg-light text-dark border me-2">
-                  <i class="fas fa-tag me-1"></i> {{ todo.category }}
-                </span>
+              <div class="text-muted small">
+                <i class="far fa-clock me-1"></i> Updated: {{
+                todo.updated_date|date:"M d, Y" }} {% if todo.category %}
+                <span class="ms-2"
+                  ><i class="fas fa-tag me-1"></i> {{ todo.category }}</span
+                >
                 {% endif %}
-
-                <span class="text-muted small">
-                  <i class="far fa-clock me-1"></i> Updated:
-                  {{todo.updated_date|date:"M d, Y" }}
-                </span>
               </div>
-
-              <div class="btn-group">
-                <!-- Status Change Buttons -->
+              <div>
                 {% if todo.status != 'pending' %}
                 <a
                   href="{% url 'todo:change_status' todo.id 'pending' %}"
@@ -205,7 +324,6 @@
                 </a>
                 {% endif %}
 
-                <!-- Edit & Delete Buttons -->
                 <a
                   href="{% url 'todo:update' todo.id %}"
                   class="btn btn-sm btn-outline-secondary me-1"
@@ -253,6 +371,98 @@
 <!-- CSRF Token for AJAX requests -->
 <script>
   const csrfToken = "{{ csrf_token }}";
+
+  // Date range picker functionality
+  $(document).ready(function () {
+    // Show date range form
+    $("#customDateRange").on("click", function (e) {
+      e.preventDefault();
+      $("#dateRangeForm").addClass("show");
+    });
+
+    // Hide date range form
+    $("#cancelDateRange").on("click", function () {
+      $("#dateRangeForm").removeClass("show");
+    });
+
+    // Close date range form when clicking outside
+    $(document).on("click", function (e) {
+      if (!$(e.target).closest(".dropdown").length) {
+        $("#dateRangeForm").removeClass("show");
+      }
+    });
+
+    // Prevent dropdown from closing when clicking on custom range
+    $(".dropdown").on("click", function (e) {
+      if ($(e.target).is("#customDateRange")) {
+        e.stopPropagation();
+      }
+    });
+
+    // Handle preset date ranges
+    $(".date-preset").on("click", function (e) {
+      e.preventDefault();
+
+      const preset = $(this).data("preset");
+      const today = new Date();
+      let startDate = new Date();
+      let endDate = new Date();
+
+      // Format date as YYYY-MM-DD
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      if (preset === "today") {
+        // Start and end date are both today
+        startDate = today;
+        endDate = today;
+      } else if (preset === "7days") {
+        // Start date is 7 days ago, end date is today
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 7);
+      } else if (preset === "30days") {
+        // Start date is 30 days ago, end date is today
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30);
+      }
+
+      // Create and submit a form with the date range
+      const form = document.createElement("form");
+      form.method = "GET";
+      form.action = "{% url 'todo:list' %}";
+
+      // Add start_date input
+      const startDateInput = document.createElement("input");
+      startDateInput.type = "hidden";
+      startDateInput.name = "start_date";
+      startDateInput.value = formatDate(startDate);
+      form.appendChild(startDateInput);
+
+      // Add end_date input
+      const endDateInput = document.createElement("input");
+      endDateInput.type = "hidden";
+      endDateInput.name = "end_date";
+      endDateInput.value = formatDate(endDate);
+      form.appendChild(endDateInput);
+
+      // Add status if present
+      const currentStatus = "{{ current_status }}";
+      if (currentStatus) {
+        const statusInput = document.createElement("input");
+        statusInput.type = "hidden";
+        statusInput.name = "status";
+        statusInput.value = currentStatus;
+        form.appendChild(statusInput);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    });
+  });
 </script>
 
 <!-- Drag and Drop functionality -->
