@@ -42,6 +42,12 @@ class Todo(models.Model):
                 default=4,
                 output_field=IntegerField(),
             ),
-            'priority',
+            Case(
+                When(priority='high', then=1),
+                When(priority='medium', then=2),
+                When(priority='low', then=3),
+                default=4,
+                output_field=IntegerField(),
+            ),
             'position'
         ]
