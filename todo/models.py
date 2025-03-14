@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import Case, When, IntegerField
 
 class Todo(models.Model):
     # Priority choices
@@ -33,4 +34,14 @@ class Todo(models.Model):
     class Meta:
         verbose_name = 'Todo'
         verbose_name_plural = 'Todos'
-        ordering = ['-status', 'priority', 'position']
+        ordering = [
+            Case(
+                When(status='in_progress', then=1),
+                When(status='pending', then=2),
+                When(status='completed', then=3),
+                default=4,
+                output_field=IntegerField(),
+            ),
+            'priority',
+            'position'
+        ]
