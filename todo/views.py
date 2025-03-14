@@ -8,6 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.models import Group
 from django.contrib.auth import logout
+from django.http import JsonResponse
 from .models import Todo
 from .forms import TodoForm
 
@@ -51,24 +52,9 @@ class TodoListView(LoginRequiredMixin, ListView):
         status_filter = self.request.GET.get('status')
         if status_filter in ['pending', 'in_progress', 'completed']:
             queryset = queryset.filter(status=status_filter)
-            
-        # Custom ordering: Status (In Progress > Pending > Completed) and Priority (High > Medium > Low)
-        return queryset.annotate(
-            status_order=Case(
-                When(status='in_progress', then=1),
-                When(status='pending', then=2),
-                When(status='completed', then=3),
-                default=4,
-                output_field=IntegerField(),
-            ),
-            priority_order=Case(
-                When(priority='high', then=1),
-                When(priority='medium', then=2),
-                When(priority='low', then=3),
-                default=4,
-                output_field=IntegerField(),
-            )
-        ).order_by('status_order', 'priority_order')
+        
+        # Use the model's default ordering (status, priority, position)
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -91,6 +77,12 @@ class TodoCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.user = self.request.user
+        # Set the position to be after the last task
+        last_position = Todo.objects.filter(user=self.request.user).order_by('-position').first()
+        if last_position:
+            form.instance.position = last_position.position + 1
+        else:
+            form.instance.position = 1
         messages.success(self.request, 'Task created successfully!')
         return super().form_valid(form)
 
@@ -103,6 +95,13 @@ class TodoUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_queryset(self):
         return Todo.objects.filter(user=self.request.user)
+    
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            messages.error(self.request, "You don't have permission to modify this task.")
+            return None
+        return obj
     
     def form_valid(self, form):
         messages.success(self.request, 'Task updated successfully!')
@@ -117,15 +116,56 @@ class TodoDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return Todo.objects.filter(user=self.request.user)
     
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            messages.error(self.request, "You don't have permission to delete this task.")
+            return None
+        return obj
+    
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Task deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
 @login_required(login_url=reverse_lazy('todo:login'))
-@user_passes_test(is_customer, login_url=reverse_lazy('todo:login'))
 def change_status(request, pk, status):
-    todo = get_object_or_404(Todo, pk=pk, user=request.user)
+    # Get the task or return 404
+    todo = get_object_or_404(Todo, pk=pk)
+    
+    # Check ownership - only allow if the task belongs to the user
+    if todo.user != request.user:
+        messages.error(request, "You don't have permission to modify this task.")
+        return redirect('todo:list')
+    
+    # Check if user has permission to change task status
+    if not is_customer(request.user):
+        messages.error(request, "You need to be a customer to change task status.")
+        return redirect('todo:list')
+    
+    # Now that we've verified both ownership and permission, update the status
     todo.status = status
     todo.save()
     messages.success(request, f'Task status changed to {status.replace("_", " ").title()}!')
     return redirect('todo:list')
+
+@login_required(login_url=reverse_lazy('todo:login'))
+def reorder_tasks(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Get the task IDs in their new order
+        task_ids = request.POST.getlist('task_ids[]')
+        status_filter = request.POST.get('status', '')
+        
+        # Validate all tasks belong to the current user
+        tasks = Todo.objects.filter(id__in=task_ids, user=request.user)
+        if len(tasks) != len(task_ids):
+            return JsonResponse({'status': 'error', 'message': 'Unauthorized task access'}, status=403)
+        
+        # Update positions
+        for i, task_id in enumerate(task_ids):
+            task = Todo.objects.get(id=task_id)
+            task.position = i + 1
+            task.save()
+            
+        return JsonResponse({'status': 'success'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)

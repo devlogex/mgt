@@ -1,5 +1,38 @@
 {% extends 'todo/base.html' %} {% block title %}My Tasks | TodoApp{% endblock %}
-{% block content %}
+{% block extra_head %}
+<link
+  rel="stylesheet"
+  href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<style>
+  .task-container {
+    min-height: 1px;
+  }
+  .sortable-placeholder {
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+    height: 100px;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+  }
+  .draggable {
+    cursor: grab;
+  }
+  .dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+  }
+
+  /* Ensure non-draggable elements retain their cursor */
+  .draggable a,
+  .draggable button,
+  .draggable .btn {
+    cursor: pointer;
+  }
+</style>
+{% endblock %} {% block content %}
 <div class="container">
   <!-- Header with stats -->
   <div class="row mb-4">
@@ -94,103 +127,106 @@
   {% if todos %}
   <div class="row">
     <div class="col-12">
-      {% for todo in todos %}
-      <div
-        class="card mb-3 shadow-sm border-0 todo-item {{ todo.priority }}-priority {% if todo.status == 'completed' %}completed{% endif %}"
-      >
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5
-              class="card-title mb-0 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}"
-            >
-              {{ todo.title }}
-            </h5>
-            <div>
-              {% if todo.status == 'pending' %}
-              <span class="badge bg-warning text-dark">Pending</span>
-              {% elif todo.status == 'in_progress' %}
-              <span class="badge bg-primary">In Progress</span>
-              {% else %}
-              <span class="badge bg-success">Completed</span>
-              {% endif %} {% if todo.priority == 'high' %}
-              <span class="badge bg-danger ms-1">High Priority</span>
-              {% elif todo.priority == 'medium' %}
-              <span class="badge bg-warning text-dark ms-1"
-                >Medium Priority</span
+      <div class="task-container" id="sortable-tasks">
+        {% for todo in todos %}
+        <div
+          class="card mb-3 shadow-sm border-0 todo-item {{ todo.priority }}-priority {% if todo.status == 'completed' %}completed{% endif %} draggable"
+          data-task-id="{{ todo.id }}"
+        >
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5
+                class="card-title mb-0 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}"
               >
-              {% elif todo.priority == 'low' %}
-              <span class="badge bg-info text-dark ms-1">Low Priority</span>
-              {% endif %}
-            </div>
-          </div>
-
-          {% if todo.description %}
-          <p class="card-text mb-3">{{ todo.description }}</p>
-          {% endif %}
-
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              {% if todo.category %}
-              <span class="badge bg-light text-dark border me-2">
-                <i class="fas fa-tag me-1"></i> {{ todo.category }}
-              </span>
-              {% endif %}
-
-              <span class="text-muted small">
-                <i class="far fa-clock me-1"></i> Updated:
-                {{todo.updated_date|date:"M d, Y" }}
-              </span>
+                {{ todo.title }}
+              </h5>
+              <div>
+                {% if todo.status == 'pending' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+                {% elif todo.status == 'in_progress' %}
+                <span class="badge bg-primary">In Progress</span>
+                {% else %}
+                <span class="badge bg-success">Completed</span>
+                {% endif %} {% if todo.priority == 'high' %}
+                <span class="badge bg-danger ms-1">High Priority</span>
+                {% elif todo.priority == 'medium' %}
+                <span class="badge bg-warning text-dark ms-1"
+                  >Medium Priority</span
+                >
+                {% elif todo.priority == 'low' %}
+                <span class="badge bg-info text-dark ms-1">Low Priority</span>
+                {% endif %}
+              </div>
             </div>
 
-            <div class="btn-group">
-              <!-- Status Change Buttons -->
-              {% if todo.status != 'pending' %}
-              <a
-                href="{% url 'todo:change_status' todo.id 'pending' %}"
-                class="btn btn-sm btn-outline-warning me-1"
-                title="Mark as Pending"
-              >
-                <i class="fas fa-hourglass"></i>
-              </a>
-              {% endif %} {% if todo.status != 'in_progress' %}
-              <a
-                href="{% url 'todo:change_status' todo.id 'in_progress' %}"
-                class="btn btn-sm btn-outline-primary me-1"
-                title="Mark as In Progress"
-              >
-                <i class="fas fa-spinner"></i>
-              </a>
-              {% endif %} {% if todo.status != 'completed' %}
-              <a
-                href="{% url 'todo:change_status' todo.id 'completed' %}"
-                class="btn btn-sm btn-outline-success me-1"
-                title="Mark as Completed"
-              >
-                <i class="fas fa-check"></i>
-              </a>
-              {% endif %}
+            {% if todo.description %}
+            <p class="card-text mb-3">{{ todo.description }}</p>
+            {% endif %}
 
-              <!-- Edit & Delete Buttons -->
-              <a
-                href="{% url 'todo:update' todo.id %}"
-                class="btn btn-sm btn-outline-secondary me-1"
-                title="Edit Task"
-              >
-                <i class="fas fa-edit"></i>
-              </a>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                {% if todo.category %}
+                <span class="badge bg-light text-dark border me-2">
+                  <i class="fas fa-tag me-1"></i> {{ todo.category }}
+                </span>
+                {% endif %}
 
-              <a
-                href="{% url 'todo:delete' todo.id %}"
-                class="btn btn-sm btn-outline-danger"
-                title="Delete Task"
-              >
-                <i class="fas fa-trash"></i>
-              </a>
+                <span class="text-muted small">
+                  <i class="far fa-clock me-1"></i> Updated:
+                  {{todo.updated_date|date:"M d, Y" }}
+                </span>
+              </div>
+
+              <div class="btn-group">
+                <!-- Status Change Buttons -->
+                {% if todo.status != 'pending' %}
+                <a
+                  href="{% url 'todo:change_status' todo.id 'pending' %}"
+                  class="btn btn-sm btn-outline-warning me-1"
+                  title="Mark as Pending"
+                >
+                  <i class="fas fa-hourglass"></i>
+                </a>
+                {% endif %} {% if todo.status != 'in_progress' %}
+                <a
+                  href="{% url 'todo:change_status' todo.id 'in_progress' %}"
+                  class="btn btn-sm btn-outline-primary me-1"
+                  title="Mark as In Progress"
+                >
+                  <i class="fas fa-spinner"></i>
+                </a>
+                {% endif %} {% if todo.status != 'completed' %}
+                <a
+                  href="{% url 'todo:change_status' todo.id 'completed' %}"
+                  class="btn btn-sm btn-outline-success me-1"
+                  title="Mark as Completed"
+                >
+                  <i class="fas fa-check"></i>
+                </a>
+                {% endif %}
+
+                <!-- Edit & Delete Buttons -->
+                <a
+                  href="{% url 'todo:update' todo.id %}"
+                  class="btn btn-sm btn-outline-secondary me-1"
+                  title="Edit Task"
+                >
+                  <i class="fas fa-edit"></i>
+                </a>
+
+                <a
+                  href="{% url 'todo:delete' todo.id %}"
+                  class="btn btn-sm btn-outline-danger"
+                  title="Delete Task"
+                >
+                  <i class="fas fa-trash"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
   </div>
   {% else %}
@@ -198,24 +234,77 @@
     <div class="col-12">
       <div class="card border-0 shadow-sm">
         <div class="card-body text-center py-5">
-          <i class="fas fa-clipboard-list text-muted fa-4x mb-3"></i>
-          {% if current_status %}
-          <h3>No {{ current_status|cut:"_"|title }} Tasks</h3>
-          <p class="text-muted">There are no tasks with this status</p>
-          <a href="{% url 'todo:list' %}" class="btn btn-outline-primary mt-2">
-            <i class="fas fa-list me-1"></i> Show All Tasks
-          </a>
-          {% else %}
-          <h3>No tasks yet</h3>
-          <p class="text-muted">Start by adding your first task</p>
-          <a href="{% url 'todo:create' %}" class="btn btn-primary mt-2">
-            <i class="fas fa-plus me-1"></i> Add Task
-          </a>
-          {% endif %}
+          <i class="fas fa-clipboard-list text-muted fa-3x mb-3"></i>
+          <h3>No Tasks Found</h3>
+          <p class="text-muted">
+            You don't have any tasks yet. {% if current_status %}
+            <a href="{% url 'todo:list' %}">View all tasks</a>
+            {% else %}
+            <a href="{% url 'todo:create' %}">Create your first task</a>
+            {% endif %}
+          </p>
         </div>
       </div>
     </div>
   </div>
   {% endif %}
 </div>
+
+<!-- CSRF Token for AJAX requests -->
+<script>
+  const csrfToken = "{{ csrf_token }}";
+</script>
+
+<!-- Drag and Drop functionality -->
+<script>
+  $(document).ready(function () {
+    $("#sortable-tasks")
+      .sortable({
+        placeholder: "sortable-placeholder",
+        items: ".draggable",
+        opacity: 0.7,
+        cursor: "move",
+        revert: 200,
+        cancel: "a, button, .btn, .badge",
+        start: function (event, ui) {
+          ui.item.addClass("dragging");
+        },
+        stop: function (event, ui) {
+          ui.item.removeClass("dragging");
+
+          // Get the new order of tasks
+          const taskIds = [];
+          $("#sortable-tasks .draggable").each(function () {
+            taskIds.push($(this).data("task-id"));
+          });
+
+          // Save the new order via AJAX
+          $.ajax({
+            url: "{% url 'todo:reorder_tasks' %}",
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            data: {
+              task_ids: taskIds,
+              status: "{{ current_status }}",
+              csrfmiddlewaretoken: csrfToken,
+            },
+            success: function (response) {
+              if (response.status === "success") {
+                // Optional: show a success message
+                console.log("Tasks reordered successfully");
+              }
+            },
+            error: function (error) {
+              console.error("Error saving task order:", error);
+              // Revert the sorting if there's an error
+              $("#sortable-tasks").sortable("cancel");
+            },
+          });
+        },
+      })
+      .disableSelection();
+  });
+</script>
 {% endblock %}

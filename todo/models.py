@@ -25,6 +25,7 @@ class Todo(models.Model):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
     category = models.CharField(max_length=50, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='todos', null=True)
+    position = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -32,3 +33,4 @@ class Todo(models.Model):
     class Meta:
         verbose_name = 'Todo'
         verbose_name_plural = 'Todos'
+        ordering = ['-status', 'priority', 'position']
