@@ -88,6 +88,9 @@ class TodoListView(LoginRequiredMixin, ListView):
         context['start_date'] = self.request.GET.get('start_date', '')
         context['end_date'] = self.request.GET.get('end_date', '')
         
+        # Add the date label to the context
+        context['date_label'] = self.request.GET.get('date_label', '')
+        
         return context
 
 class TodoCreateView(LoginRequiredMixin, CreateView):

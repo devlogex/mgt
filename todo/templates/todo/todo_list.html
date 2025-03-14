@@ -78,8 +78,7 @@
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              {% if start_date and end_date %} {{ start_date }} to {{ end_date
-              }} {% else %} Date Filter {% endif %}
+              {% if date_label %} {{ date_label }} {% elif start_date and end_date %} {{ start_date }} to {{ end_date }} {% else %} Date Filter {% endif %}
             </button>
             <ul class="dropdown-menu" aria-labelledby="dateFilterDropdown">
               <li>
@@ -87,6 +86,7 @@
                   class="dropdown-item date-preset"
                   href="#"
                   data-preset="today"
+                  data-label="Today"
                   >Today</a
                 >
               </li>
@@ -95,6 +95,7 @@
                   class="dropdown-item date-preset"
                   href="#"
                   data-preset="7days"
+                  data-label="Last 7 Days"
                   >Last 7 Days</a
                 >
               </li>
@@ -103,6 +104,7 @@
                   class="dropdown-item date-preset"
                   href="#"
                   data-preset="30days"
+                  data-label="Last 30 Days"
                   >Last 30 Days</a
                 >
               </li>
@@ -135,6 +137,7 @@
                   value="{{ current_status }}"
                 />
                 {% endif %}
+                <!-- No date_label input here, so it will be cleared when using custom range -->
                 <div class="mb-3">
                   <label for="start_date" class="form-label">Start Date</label>
                   <input
@@ -185,7 +188,7 @@
   <div class="row mb-4">
     <div class="col-md-4 mb-3">
       <a
-        href="{% if current_status == 'pending' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=pending{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
+        href="{% if current_status == 'pending' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% else %}{% url 'todo:list' %}?status=pending{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -206,7 +209,7 @@
     </div>
     <div class="col-md-4 mb-3">
       <a
-        href="{% if current_status == 'in_progress' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=in_progress{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
+        href="{% if current_status == 'in_progress' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% else %}{% url 'todo:list' %}?status=in_progress{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -227,7 +230,7 @@
     </div>
     <div class="col-md-4 mb-3">
       <a
-        href="{% if current_status == 'completed' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% else %}{% url 'todo:list' %}?status=completed{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% endif %}{% endif %}"
+        href="{% if current_status == 'completed' %}{% url 'todo:list' %}{% if start_date and end_date %}?start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% else %}{% url 'todo:list' %}?status=completed{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% endif %}"
         class="text-decoration-none"
       >
         <div
@@ -404,6 +407,7 @@
       e.preventDefault();
 
       const preset = $(this).data("preset");
+      const label = $(this).data("label");
       const today = new Date();
       let startDate = new Date();
       let endDate = new Date();
@@ -448,6 +452,13 @@
       endDateInput.name = "end_date";
       endDateInput.value = formatDate(endDate);
       form.appendChild(endDateInput);
+
+      // Add date label
+      const dateLabelInput = document.createElement("input");
+      dateLabelInput.type = "hidden";
+      dateLabelInput.name = "date_label";
+      dateLabelInput.value = label;
+      form.appendChild(dateLabelInput);
 
       // Add status if present
       const currentStatus = "{{ current_status }}";
