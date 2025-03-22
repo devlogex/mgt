@@ -24,7 +24,7 @@ class Todo(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending')
-    category = models.CharField(max_length=50, blank=True)
+    tag = models.CharField(max_length=50, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='todos', null=True)
     position = models.PositiveIntegerField(default=0)
 

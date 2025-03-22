@@ -5,7 +5,7 @@ from .models import Todo
 class TodoForm(forms.ModelForm):
     class Meta:
         model = Todo
-        fields = ['title', 'description', 'priority', 'status', 'category']
+        fields = ['title', 'description', 'priority', 'status', 'tag']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }

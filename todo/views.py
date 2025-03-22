@@ -55,6 +55,11 @@ class TodoListView(LoginRequiredMixin, ListView):
         if status_filter in ['pending', 'in_progress', 'completed']:
             queryset = queryset.filter(status=status_filter)
         
+        # Filter by tag if provided in the URL
+        tag_filter = self.request.GET.get('tag')
+        if tag_filter:
+            queryset = queryset.filter(tag=tag_filter)
+        
         # Filter by date range if provided in the URL
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
@@ -83,6 +88,9 @@ class TodoListView(LoginRequiredMixin, ListView):
         
         # Add the current status filter to the context
         context['current_status'] = self.request.GET.get('status', '')
+        
+        # Add the current tag filter to the context
+        context['current_tag'] = self.request.GET.get('tag', '')
         
         # Add the custom date range to the context
         context['start_date'] = self.request.GET.get('start_date', '')

@@ -59,13 +59,17 @@
       <div class="d-flex justify-content-between align-items-center">
         <h1 class="mb-0">
           <i class="fas fa-tasks text-primary me-2"></i>
-          My Tasks {% if current_status or start_date %}
+          My Tasks {% if current_status or start_date or current_tag %}
           <a
             href="{% url 'todo:list' %}"
             class="btn btn-outline-secondary btn-sm ms-3"
           >
             <i class="fas fa-times me-1"></i> Clear Filters
           </a>
+          {% endif %} {% if current_tag %}
+          <span class="badge bg-info text-dark ms-2">
+            Tag: {{ current_tag }}
+          </span>
           {% endif %}
         </h1>
         <div class="d-flex">
@@ -78,7 +82,9 @@
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              {% if date_label %} {{ date_label }} {% elif start_date and end_date %} {{ start_date }} to {{ end_date }} {% else %} Date Filter {% endif %}
+              {% if date_label %} {{ date_label }} {% elif start_date and
+              end_date %} {{ start_date }} to {{ end_date }} {% else %} Date
+              Filter {% endif %}
             </button>
             <ul class="dropdown-menu" aria-labelledby="dateFilterDropdown">
               <li>
@@ -293,11 +299,21 @@
 
             <div class="d-flex justify-content-between align-items-center">
               <div class="text-muted small">
-                <i class="far fa-clock me-1"></i> 
-                Updated: {{ todo.updated_date|date:"M d, Y" }} {% if todo.category %}
-                <span class="ms-2"
-                  ><i class="fas fa-tag me-1"></i> {{ todo.category }}</span
+                <i class="far fa-clock me-1"></i>
+                Updated: {{ todo.updated_date|date:"M d, Y" }} {% if todo.tag %}
+                <a
+                  href="{% if current_tag == todo.tag %}{% url 'todo:list' %}{% if current_status %}?status={{ current_status }}{% endif %}{% if start_date and end_date %}{% if current_status %}&{% else %}?{% endif %}start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% else %}{% url 'todo:list' %}?tag={{ todo.tag }}{% if current_status %}&status={{ current_status }}{% endif %}{% if start_date and end_date %}&start_date={{ start_date }}&end_date={{ end_date }}{% if date_label %}&date_label={{ date_label }}{% endif %}{% endif %}{% endif %}"
+                  class="text-decoration-none"
                 >
+                  <span class="tag-badge"
+                    ><i class="fas fa-tag me-1"></i> {{ todo.tag }}{% if current_tag == todo.tag %}
+                    <i
+                      class="fas fa-times-circle text-danger ms-1"
+                      title="Clear Tag Filter"
+                    ></i
+                    >{% endif %}</span
+                  >
+                </a>
                 {% endif %}
               </div>
               <div>

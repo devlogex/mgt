@@ -5,6 +5,6 @@ from .models import Todo
 class TodoAdmin(admin.ModelAdmin):
     list_display = ('title', 'status', 'priority', 'user', 'updated_date', 'created_date')
     list_filter = ('status', 'priority', 'user', 'updated_date', 'created_date')
-    search_fields = ('title', 'description', 'category')
+    search_fields = ('title', 'description', 'tag')
     date_hierarchy = 'updated_date'
     ordering = ('-updated_date',)
