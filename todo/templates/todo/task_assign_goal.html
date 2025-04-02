@@ -1,0 +1,61 @@
+{% extends "todo/base.html" %}
+{% block title %}Assign Task to Goal | TodoApp{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="fas fa-link me-2"></i> Assign Task to Goal</h4>
+        </div>
+        <div class="card-body p-4">
+          <div class="alert alert-info mb-4">
+            <div class="d-flex">
+              <div class="me-3">
+                <i class="fas fa-tasks fa-2x text-primary"></i>
+              </div>
+              <div>
+                <h5 class="mb-1">{{ task.title }}</h5>
+                <div class="text-muted small">
+                  <span class="badge {% if task.status == 'pending' %}bg-warning{% elif task.status == 'in_progress' %}bg-primary{% else %}bg-success{% endif %}">
+                    {{ task.get_status_display }}
+                  </span>
+                  <span class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %} ms-1">
+                    {{ task.get_priority_display }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <label for="goal_id" class="form-label">Select Goal</label>
+              <select name="goal_id" id="goal_id" class="form-select">
+                <option value="">-- No Goal (Remove from Goal) --</option>
+                {% for goal in goals %}
+                <option value="{{ goal.id }}" {% if task.goal and task.goal.id == goal.id %}selected{% endif %}>
+                  {{ goal.title }} ({{ goal.start_date|date:"M d" }} - {{ goal.end_date|date:"M d, Y" }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+              <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

@@ -158,9 +158,33 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'todo:create' %}">
-                <i class="fas fa-plus me-1"></i> New Task
+              <a class="nav-link" href="{% url 'todo:goal_list' %}">
+                <i class="fas fa-bullseye me-1"></i> Goals
               </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="addDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-plus me-1"></i> New
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="addDropdown">
+                <li>
+                  <a class="dropdown-item" href="{% url 'todo:add' %}">
+                    <i class="fas fa-tasks me-2"></i>Task
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'todo:goal_add' %}">
+                    <i class="fas fa-bullseye me-2"></i>Goal
+                  </a>
+                </li>
+              </ul>
             </li>
             <li class="nav-item dropdown">
               <a

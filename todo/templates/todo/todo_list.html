@@ -182,7 +182,7 @@
             </div>
           </div>
 
-          <a href="{% url 'todo:create' %}" class="btn btn-primary">
+          <a href="{% url 'todo:add' %}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i> New Task
           </a>
         </div>
@@ -306,13 +306,26 @@
                   class="text-decoration-none"
                 >
                   <span class="tag-badge"
-                    ><i class="fas fa-tag me-1"></i> {{ todo.tag }}{% if current_tag == todo.tag %}
+                    ><i class="fas fa-tag me-1"></i> {{ todo.tag }}{% if
+                    current_tag == todo.tag %}
                     <i
                       class="fas fa-times-circle text-danger ms-1"
                       title="Clear Tag Filter"
                     ></i
                     >{% endif %}</span
                   >
+                </a>
+                {% endif %} {% if todo.goal %}
+                <a
+                  href="{% url 'todo:goal_detail' todo.goal.id %}"
+                  class="text-decoration-none ms-2"
+                >
+                  <span
+                    class="tag-badge"
+                    style="border-left-color: {{ todo.goal.color }}!important; padding-left: 8px;"
+                  >
+                    <i class="fas fa-bullseye me-1"></i> {{ todo.goal.title }}
+                  </span>
                 </a>
                 {% endif %}
               </div>
@@ -352,6 +365,14 @@
                 </a>
 
                 <a
+                  href="{% url 'todo:task_assign_goal' todo.id %}"
+                  class="btn btn-sm btn-outline-info me-1"
+                  title="Assign to Goal"
+                >
+                  <i class="fas fa-bullseye"></i>
+                </a>
+
+                <a
                   href="{% url 'todo:delete' todo.id %}"
                   class="btn btn-sm btn-outline-danger"
                   title="Delete Task"
@@ -377,7 +398,7 @@
             You don't have any tasks yet. {% if current_status %}
             <a href="{% url 'todo:list' %}">View all tasks</a>
             {% else %}
-            <a href="{% url 'todo:create' %}">Create your first task</a>
+            <a href="{% url 'todo:add' %}">Create your first task</a>
             {% endif %}
           </p>
         </div>
