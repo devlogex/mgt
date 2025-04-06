@@ -12,6 +12,7 @@ do
    ps -ef | grep -v grep | grep -i -e application -e runserver
    if [ $? -ne "0" ];then
     echo "Service started"
+    source venv/bin/activate
     python manage.py runserver 0.0.0.0:8000
    else
        echo " Application not started !!! Please wait on 5 sec to restart"
