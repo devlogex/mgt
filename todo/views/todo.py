@@ -101,7 +101,13 @@ class TodoUpdateView(LoginRequiredMixin, UpdateView):
     model = Todo
     form_class = TodoForm
     template_name = 'todo/todo_form.html'
-    success_url = reverse_lazy('todo:list')
+    
+    def get_success_url(self):
+        # If the task has a goal, redirect back to the goal detail page
+        if self.object.goal:
+            return reverse_lazy('todo:goal_detail', kwargs={'pk': self.object.goal.pk})
+        # Otherwise, redirect to the task list
+        return reverse_lazy('todo:list')
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -160,7 +166,18 @@ def change_status(request, pk, status):
     # Now that we've verified both ownership and permission, update the status
     todo.status = status
     todo.save()
+    
+    # Get the referer URL to see where the request came from
+    referer = request.META.get('HTTP_REFERER', '')
+    
+    # Success message
     messages.success(request, f'Task status changed to {status.replace("_", " ").title()}!')
+    
+    # If the task has a goal and the request came from the goal detail page, redirect back there
+    if todo.goal and f'/goals/{todo.goal.id}/' in referer:
+        return redirect('todo:goal_detail', pk=todo.goal.id)
+    
+    # Otherwise redirect to the task list
     return redirect('todo:list')
 
 

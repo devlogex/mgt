@@ -28,15 +28,28 @@
               <div class="col-12">{{ form.tag|as_crispy_field }}</div>
             </div>
 
+            <div class="row mb-3">
+              <div class="col-12">{{ form.goal|as_crispy_field }}</div>
+            </div>
+
             <div class="row mb-4">
               <div class="col-md-6">{{ form.priority|as_crispy_field }}</div>
               <div class="col-md-6">{{ form.status|as_crispy_field }}</div>
             </div>
 
             <div class="d-flex justify-content-between">
+              {% if form.instance.goal %}
+              <a
+                href="{% url 'todo:goal_detail' form.instance.goal.id %}"
+                class="btn btn-outline-secondary"
+              >
+                <i class="fas fa-arrow-left me-1"></i> Back to Goal
+              </a>
+              {% else %}
               <a href="{% url 'todo:list' %}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> Back to List
               </a>
+              {% endif %}
               <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save me-1"></i> Save Task
               </button>
