@@ -13,7 +13,7 @@ do
    if [ $? -ne "0" ];then
     echo "Service started"
     . venv/bin/activate
-    python manage.py runserver 0.0.0.0:8000
+    python manage.py runserver
    else
        echo " Application not started !!! Please wait on 5 sec to restart"
    fi
